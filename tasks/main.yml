@@ -1,0 +1,40 @@
+---
+# tasks file for ansible-7zip
+- name: Create staging folder
+  ansible.builtin.file:
+    path: "{{ staging_folder }}"
+    state: directory
+  delegate_to: localhost
+- name: Download 7zip to staging folder
+  ansible.builtin.get_url:
+    url: "{{ download_url }}"
+    dest: "{{ staging_folder }}"
+  delegate_to: localhost
+- name: Parse string to get file name
+  ansible.builtin.set_fact:
+    file_name: "{{ download_url[-14:] }}"
+- ansible.builtin.debug:
+    var: file_name
+- name: Distribute installation file
+  ansible.windows.win_copy:
+    src: "{{ staging_folder }}/{{file_name}}"
+    dest: c:/ansible
+- name: install the 7 zip when sevenzip_uninstall flag is false
+  ansible.windows.win_package:
+    path: "c:/ansible/{{file_name}}"
+    state: present
+  when: not sevenzip_uninstall
+- name: uninstall 7 zip when sevenzip_uninstall flag is true
+  ansible.windows.win_package:
+    path: "c:/ansible/{{file_name}}"
+    state: absent
+  when: sevenzip_uninstall
+- name: remove 7 zip installation folder
+  ansible.windows.win_file:
+    path: c:/ansible
+    state: absent
+  when: sevenzip_uninstall
+- name: remove staging folder
+  ansible.builtin.file:
+    path: "{{ staging_folder }}"
+    state: absent

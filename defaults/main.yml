@@ -1,0 +1,3 @@
+---
+staging_folder: /tmp/ansible
+download_url: https://www.7-zip.org/a/7z2501-x64.msi
