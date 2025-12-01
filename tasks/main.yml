@@ -18,15 +18,21 @@
 - name: Distribute installation file
   ansible.windows.win_copy:
     src: "{{ staging_folder }}/{{file_name}}"
-    dest: c:/ansible
+    dest: c:/ansible/
+# - name: Check the file
+#   ansible.windows.win_stat:
+#     path: "c:/ansible/{{file_name}}"
+#   register: output_result
+# - ansible.builtin.debug:
+#     var: output_result
 - name: install the 7 zip when sevenzip_uninstall flag is false
   ansible.windows.win_package:
-    path: "c:/ansible/{{file_name}}"
+    path:  "c:\\ansible\\{{file_name}}"
     state: present
   when: not sevenzip_uninstall
 - name: uninstall 7 zip when sevenzip_uninstall flag is true
   ansible.windows.win_package:
-    path: "c:/ansible/{{file_name}}"
+    path: "c:\\ansible\\{{file_name}}"
     state: absent
   when: sevenzip_uninstall
 - name: remove 7 zip installation folder
@@ -38,3 +44,4 @@
   ansible.builtin.file:
     path: "{{ staging_folder }}"
     state: absent
+  delegate_to: localhost
