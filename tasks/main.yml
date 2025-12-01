@@ -1,40 +1,41 @@
 ---
-# tasks file for ansible-7zip
-- name: Create staging folder
-  ansible.builtin.file:
-    path: "{{ staging_folder }}"
-    state: directory
+- name: Prepare 7zip installation
   delegate_to: localhost
-- name: Download 7zip to staging folder
-  ansible.builtin.get_url:
-    url: "{{ download_url }}"
-    dest: "{{ staging_folder }}"
-  delegate_to: localhost
-- name: Parse string to get file name
+  block:
+    - name: Create staging folder
+      ansible.builtin.file:
+        path: '{{ staging_folder }}'
+        state: directory
+    - name: Download 7zip
+      ansible.builtin.get_url:
+        url: '{{ download_url }}'
+        dest: '{{ staging_folder }}'
+- name: Get file name
   ansible.builtin.set_fact:
-    file_name: "{{ download_url[-14:] }}"
-- ansible.builtin.debug:
-    var: file_name
+    file_name: '{{ download_url[-14:] }}'
 - name: Distribute installation file
   ansible.windows.win_copy:
-    src: "{{ staging_folder }}/{{file_name}}"
-    dest: c:/ansible
-- name: install the 7 zip when sevenzip_uninstall flag is false
+    src: '{{ staging_folder }}/{{ file_name }}'
+    dest: 'c:\ansible\'
+- name: Install 7zip
   ansible.windows.win_package:
-    path: "c:/ansible/{{file_name}}"
-    state: present
-  when: not sevenzip_uninstall
-- name: uninstall 7 zip when sevenzip_uninstall flag is true
-  ansible.windows.win_package:
-    path: "c:/ansible/{{file_name}}"
-    state: absent
-  when: sevenzip_uninstall
-- name: remove 7 zip installation folder
-  ansible.windows.win_file:
-    path: c:/ansible
-    state: absent
-  when: sevenzip_uninstall
-- name: remove staging folder
+    path: 'c:\ansible\{{ file_name }}'
+  when: sevenzip_uninstall is not defined or not sevenzip_uninstall
+- name: Purge 7zip
+  when:
+    - sevenzip_uninstall is defined
+    - sevenzip_uninstall
+  block:
+    - name: Uninstall 7zip
+      ansible.windows.win_package:
+        path: 'c:\ansible\{{ file_name }}'
+        state: absent
+    - name: Remove 7zip installation folder
+      ansible.windows.win_file:
+        path: 'c:\ansible'
+        state: absent
+- name: Remove staging folder
   ansible.builtin.file:
-    path: "{{ staging_folder }}"
+    path: '{{ staging_folder }}'
     state: absent
+  delegate_to: localhost
