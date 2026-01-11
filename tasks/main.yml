@@ -13,29 +13,9 @@
 - name: Get file name
   ansible.builtin.set_fact:
     file_name: '{{ download_url[-14:] }}'
-- name: Distribute installation file
-  ansible.windows.win_copy:
-    src: '{{ staging_folder }}/{{ file_name }}'
-    dest: 'c:\ansible\'
-- name: Install 7zip
-  ansible.windows.win_package:
-    path: 'c:\ansible\{{ file_name }}'
-  when: sevenzip_uninstall is not defined or not sevenzip_uninstall
-- name: Purge 7zip
-  when:
-    - sevenzip_uninstall is defined
-    - sevenzip_uninstall
+- name: Work on linux system
+  when: ansible_facts['os_family'] | trim | lower != 'windows'
   block:
-    - name: Uninstall 7zip
-      ansible.windows.win_package:
-        path: 'c:\ansible\{{ file_name }}'
-        state: absent
-    - name: Remove 7zip installation folder
-      ansible.windows.win_file:
-        path: 'c:\ansible'
-        state: absent
-- name: Remove staging folder
-  ansible.builtin.file:
-    path: '{{ staging_folder }}'
-    state: absent
-  delegate_to: localhost
+    - name: Copy file
+      debug:
+        msg: "Successfully copied {{staging_folder}}/{{file_name}} to /tmp"
