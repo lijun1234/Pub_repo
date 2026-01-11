@@ -17,5 +17,13 @@
   when: ansible_facts['os_family'] | trim | lower != 'windows'
   block:
     - name: Copy file
+      ansible.builtin.copy:
+        src: "{{staging_folder}}/{{file_name}}"
+        dest: /tmp
+    - name: check the file
+      ansible.builtin.stat:
+        path: "/tmp/{{file_name}}"
+      register: file_info
+    - name: report  file information
       debug:
-        msg: "Successfully copied {{staging_folder}}/{{file_name}} to /tmp"
+        var: file_info
